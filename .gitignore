@@ -1,5 +1,7 @@
 out
 
+.env
+
 tmp/*
 
 .air.toml
