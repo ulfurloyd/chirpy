@@ -6,19 +6,20 @@ import (
 	"time"
 
 	"github.com/ulfurloyd/chirpy.git/internal/auth"
+	"github.com/ulfurloyd/chirpy.git/internal/database"
 )
 
 func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Email                 string      `json:"email"`
-		Password              string      `json:"password"`
-		ExpiresInSeconds      int         `json:"expires_in_seconds"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
-	params := parameters {}
+	params := parameters{}
 
 	type response struct {
 		User
-		Token string `json:"token"`
+		Token        string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&params)
@@ -39,12 +40,22 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expiresIn := time.Duration(params.ExpiresInSeconds) * time.Second
-	if params.ExpiresInSeconds <= 0 || expiresIn > time.Hour {
-		expiresIn = time.Hour
-	}
+	expiresIn := time.Hour
+	// if params.ExpiresInSeconds <= 0 || expiresIn > time.Hour {
+	// 	expiresIn = time.Hour
+	// }
 
 	token, err := auth.MakeJWT(user.ID, cfg.jwtSecret, expiresIn)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "couldn't create token", err)
+		return
+	}
+
+	generatedToken := auth.MakeRefreshToken()
+	refreshToken, err := cfg.db.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
+		Token:  generatedToken,
+		UserID: user.ID,
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "couldn't create token", err)
 		return
@@ -55,8 +66,9 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 			ID:        user.ID,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
-			Email: user.Email,
+			Email:     user.Email,
 		},
-		Token: token,
+		Token:        token,
+		RefreshToken: refreshToken.Token,
 	})
 }
