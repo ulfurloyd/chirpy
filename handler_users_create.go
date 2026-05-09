@@ -11,18 +11,18 @@ import (
 )
 
 type User struct {
-	ID              uuid.UUID    `json:"id"`
-	CreatedAt       time.Time    `json:"created_at"`
-	UpdatedAt       time.Time    `json:"updated_at"`
-	Email           string       `json:"email"`
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Email     string    `json:"email"`
 }
 
 func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Email           string       `json:"email"`
-		Password        string       `json:"password"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
-	params := parameters {}
+	params := parameters{}
 
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
@@ -37,7 +37,7 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 	}
 
 	user, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
-		Email: params.Email,
+		Email:          params.Email,
 		HashedPassword: hash,
 	})
 	if err != nil {
@@ -46,9 +46,9 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 	}
 
 	respondWithJSON(w, http.StatusCreated, User{
-		ID: user.ID,
+		ID:        user.ID,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
-		Email: user.Email,
+		Email:     user.Email,
 	})
 }
