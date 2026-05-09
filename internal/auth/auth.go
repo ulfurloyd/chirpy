@@ -23,10 +23,10 @@ func CheckPasswordHash(password, hash string) (bool, error) {
 
 func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
 	claims := &jwt.RegisteredClaims{
-		Issuer:        "chirpy-access",
-		IssuedAt:      jwt.NewNumericDate(time.Now().UTC()),
-		ExpiresAt:     jwt.NewNumericDate(time.Now().Add(expiresIn).UTC()),
-		Subject:       userID.String(),
+		Issuer:    "chirpy-access",
+		IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn).UTC()),
+		Subject:   userID.String(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -58,7 +58,7 @@ func GetBearerToken(headers http.Header) (string, error) {
 	if authHeader == "" {
 		return "", errors.New("Missing Bearer")
 	}
-	
+
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 	return strings.TrimSpace(token), nil
 }
@@ -68,4 +68,14 @@ func MakeRefreshToken() string {
 	rand.Read(data)
 
 	return hex.EncodeToString(data)
+}
+
+func GetAPIKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("Missing Bearer")
+	}
+
+	apiKey := strings.TrimPrefix(authHeader, "ApiKey ")
+	return strings.TrimSpace(apiKey), nil
 }
