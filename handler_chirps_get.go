@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,15 +21,17 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 	var chirps []database.Chirp
 	var err error
 
-	s := r.URL.Query().Get("author_id")
-	if s == "" {
+	authIDQuery := r.URL.Query().Get("author_id")
+	sortQuery := r.URL.Query().Get("sort")
+
+	if authIDQuery == "" {
 		chirps, err = cfg.db.GetChirps(r.Context())
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not get chirps", err)
 			return
 		}
 	} else {
-		authID, err := uuid.Parse(s)
+		authID, err := uuid.Parse(authIDQuery)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not parse UUID", err)
 			return
@@ -39,6 +42,17 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	sortDirection := "asc"
+	if sortQuery == "desc" {
+		sortDirection = "desc"
+	}
+	sort.Slice(chirps, func(i, j int) bool {
+		if sortDirection == "desc" {
+			return chirps[i].CreatedAt.After(chirps[j].CreatedAt)
+		}
+		return chirps[i].CreatedAt.Before(chirps[j].CreatedAt)
+	})
 
 	responses := []responseType{}
 	for _, chirp := range chirps {
