@@ -31,8 +31,11 @@ The server will start on port `8082` by default.
 ## API Documentataion
 - `GET /api/healthz` - Check if the server is alive.
 - `POST /api/users` - Create a new user.
+- `PUT /api/users` - Update a user.
 - `POST /api/login` - Authenticate and receive tokens.
+- `GET /api/chirps` - Fetch chirps.
 - `POST /api/chirps` - Post a new chirp.
-- ...
+- `GET /api/chirps` - Fetch chirps.
+- `POST /api/refresh` - Refresh the API.
 
 > **_NOTE:_** This project was built as part of the [Boot.dev](https://www.boot.dev) DevOps Engineering learning path, in the [Learn HTTP Servers](https://www.boot.dev/courses/learn-http-servers-golang) course.
